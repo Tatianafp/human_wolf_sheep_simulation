@@ -89,4 +89,14 @@ Para utilizar o simulador e rodar o novo modelo, basta executar o seguinte coman
     $ mesa runserver
 ```
 
-## Varíaveis armazenadas no arquivo CSV
+## Descrição das variáveis armazenadas no arquivo CSV
+
+O arquivo csv onde foram armazenados os dados dos experimentos possuem 4 variáveis. A primeira coluna indica o "step", a coluna "Wolves" indica a quantidade de lobos durante aquele instante, a coluna "Sheep" indica a quantidade de ovelhas durante aquele momento e por fim, a coluna "Human" indica a quantidade de humanos durante aquele "step". 
+
+Foram realizados 3 experimentos iniciais, alterando a espécie que seria inicializada como sendo a maioria. A seguir estão os parâmetros que foram usados em cada experimentos: 
+
+- Experimento 1: initial_sheep = 100, initial_wolves = 50, initial_humans = 50
+- Experimento 2: initial_sheep = 50, initial_wolves = 100, initial_humans = 50
+- Experimento 3: initial_sheep = 50, initial_wolves = 50, initial_humans = 100
+
+O nome dos arquivos csv indicam qual a espécie começou como maioria e qual durou até o final. Por exemplo, em "model_init_sheep_end_wolves_08-03-2022_18-55.csv", as ovelhas começaram como maioria, mas quem sobreviveu por mais tempo foram os lobos. 
