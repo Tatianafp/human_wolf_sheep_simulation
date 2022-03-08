@@ -4,7 +4,7 @@
 
 O modelo Human Wolf Sheep foi desenvolvido com base no exemplo "Wolf Sheep" fornecido no repositório do [framework MESA](https://github.com/projectmesa/mesa-examples). O modelo original tem por objetivo simular o ecossistema existente entre lobos e ovelhas. Por sua vez, o novo modelo "Human Wolf Sheep" visa simular as consequência da inserção de humanos nesse ecossistema.
 
-## Descrião da hipótese
+## Descrição da hipótese
 
 Ao rodar o modelo "Wolf Sheep" algumas vezes, notou-se que caso se tenha as ovelhas sejam extintas antes dos lobos, estes não sobrevivem por muito tempo, pois não se alimentam de grama. Caso contrário, as ovelhas sobrevivem bem melhor, pois mantiveram sua fonte de energia e não possuem a ameaça de serem comidas por lobos. Tendo isso em vista, 
 foi criado um agente que representa um humano, o qual se alimenta de grama e ovelha, mas que também pode ser comido por lobos, a fim de se analisar a influência que este quarto
@@ -12,11 +12,63 @@ elemento exerce perante este ecossistema.
 
 ## Mudanças realizadas
 
--- adicionei o arquivo "mesa_file.py" pois o código não estava conseguindo importar "time" do módulo "mesa.time"
--- adicionei o agente "Human" que representa o ser humana que se alimenta de grama e carne de ovelha, mas que também pode ser atacado por lobos.
-- Para tal, foi reproduzido o comportamento do lobo referente a ovelha para codificar o humano também comendo ovelha, o comportamento da ovelha comendo grama para codificar o humano também comendo grama
-e o comportamento do lobo ao se mexer foi alterado a fim de se incluir suas ações caso esteja no mesmo quadrado que um humano. 
-Os comportamento referentes a reproducibilidade e quantidade de energia adiquirida a partir da alimentação também foram codificados com base nos comportamentos das ovelhas e dos lobos
+### Agente "Human"
+Uma das mudanças mais relevantes foi a adiçao do agente "Human", que representa o ser humano que se alimenta de grama e carne de ovelha, mas que também pode ser atacado por lobos.
+
+Para tal, foi reproduzido o comportamento do lobo referente a ovelha para codificar o humano também comendo ovelha, o comportamento da ovelha comendo grama para codificar o humano também comendo grama e o comportamento do lobo ao se mexer foi alterado a fim de se incluir suas ações caso esteja no mesmo quadrado que um humano. Os comportamento referentes a reproducibilidade e quantidade de energia adiquirida a partir da alimentação também foram codificados com base nos comportamentos das ovelhas e dos lobos. 
+
+    class Human(RandomWalker):
+        """
+        A human that walks around, reproduces (asexually) and eats sheep and grass, and gets eaten by wolf.
+        """
+
+        energy = None
+
+        def __init__(self, unique_id, pos, model, moore, energy=None):
+            super().__init__(unique_id, pos, model, moore=moore)
+            self.energy = energy
+
+        def step(self):
+            self.random_move()
+            self.energy -= 1
+
+            # If there is grass available, eat it
+            this_cell = self.model.grid.get_cell_list_contents([self.pos])
+            grass_patch = [obj for obj in this_cell if isinstance(obj, GrassPatch)][0]
+            if grass_patch.fully_grown:
+                self.energy += self.model.human_gain_from_food
+                grass_patch.fully_grown = False
+
+            # If there are sheep present, eat one
+            x, y = self.pos
+            this_cell = self.model.grid.get_cell_list_contents([self.pos])
+            sheep = [obj for obj in this_cell if isinstance(obj, Sheep)]
+            if len(sheep) > 0:
+                sheep_to_eat = self.random.choice(sheep)
+                self.energy += self.model.human_gain_from_food
+
+                # Kill the sheep
+                self.model.grid._remove_agent(self.pos, sheep_to_eat)
+                self.model.schedule.remove(sheep_to_eat)
+
+            # Death or reproduction
+            if self.energy < 0:
+                self.model.grid._remove_agent(self.pos, self)
+                self.model.schedule.remove(self)
+            else:
+                if self.random.random() < self.model.human_reproduce:
+                    # Create a new human baby
+                    self.energy /= 2
+                    baby = Human(
+                        self.model.next_id(), self.pos, self.model, self.moore, self.energy
+                    )
+                    self.model.grid.place_agent(baby, baby.pos)
+                    self.model.schedule.add(baby)
+                    
+### Ajustes gerais
+- Foi adicionado o arquivo "mesa_file.py", pois o código não estava conseguindo importar "time" do módulo "mesa.time". Todo o conteúdo desse arquivo foi obtido a partir do repositório do [framework MESA, na pasta "./mesa/time"](https://github.com/projectmesa/mesa/blob/main/mesa/time.py)
+- Além da definição da classe "Humans" no arquivo "agents.py", também foram realizadas mais algumas modificações necessárias para a execução correta do código, como por exemplo a adição do Agente "Human" nos arquivos "server.py" e "model.py". 
+- Adicionou-se uma linha representando a quantidade de humanos em cada "step" na visualização presente na interface de interação com a simulação.
 
 ## Como usar o simulador
 
@@ -38,14 +90,3 @@ Para utilizar o simulador e rodar o novo modelo, basta executar o seguinte coman
 ```
 
 ## Varíaveis armazenadas no arquivo CSV
-
-
-\item Deve apresentar uma variação no comportamento do modelo e no comportamento dos agentes. As duas variações podem ser mínimas, mas precisam ser justificadas, baseadas em alguma hipótese causal que você deve declarar, sobre o seu entendimento do modelo que está sendo simulado;
-\item Deve permitir que pelo menos um parâmetro ou variável de controle adicional possa ser manipulável na interface do usuário, na parte interativa do modelo. A sua hipótese causal deve estar relacionada com essa variável manipulável;
-\item Deve apresentar, na interface de interação com a simulação, algum gráfico mostrando a variação de dados de efeito, necessariamente relacionados com a sua hipótese causal. Podem ser os mesmos dados já existentes na simulação original, ou novos dados que você acha importante serem apresentados;
-\item Deve coletar e gravar dados gerados durante cada execução da simulação, em dois arquivos no formato CSV, usando as ferramentas próprias do framework, apresentadas na URL \url{https://mesa.readthedocs.io/en/stable/tutorials/intro_tutorial.html#collecting-data}. Um dos arquivos contém os dados de variáveis no nível do modelo, e outro de variáveis no nível do agente, por exemplo:
-{\footnotesize
-    \begin{itemize}
-        \item \verb|model_data_iter_10_steps_10_2021-11-05 17:32:12.906885.csv|
-        \item \verb|agent_data_iter_10_steps_10_2021-11-05 17:32:12.906885.csv|
-    \end{itemize}
