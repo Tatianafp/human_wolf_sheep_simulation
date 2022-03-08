@@ -12,9 +12,16 @@ Replication of the model found in NetLogo:
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
-from mesa.time import RandomActivationByType
 
-from wolf_sheep.agents import Sheep, Wolf, GrassPatch
+from wolf_sheep.mesa_time import RandomActivationByType
+
+from wolf_sheep.agents import Sheep, Wolf, GrassPatch, Human
+
+import pandas as pd
+
+def _get_majority(c_human, c_wolves, c_sheep):
+    counts = {c_human:'Human', c_wolves:'Wolf', c_sheep:'Sheep'}
+    return counts[max([c_human, c_wolves, c_sheep])]
 
 
 class WolfSheep(Model):
@@ -27,11 +34,15 @@ class WolfSheep(Model):
 
     initial_sheep = 100
     initial_wolves = 50
+    initial_humans = 10
 
     sheep_reproduce = 0.04
     wolf_reproduce = 0.05
+    human_reproduce = 0.3
 
     wolf_gain_from_food = 20
+
+    human_gain_from_food = 30
 
     grass = False
     grass_regrowth_time = 30
@@ -49,12 +60,15 @@ class WolfSheep(Model):
         height=20,
         initial_sheep=100,
         initial_wolves=50,
+        initial_humans=30,
         sheep_reproduce=0.04,
         wolf_reproduce=0.05,
+        human_reproduce=0.03,
         wolf_gain_from_food=20,
         grass=False,
         grass_regrowth_time=30,
         sheep_gain_from_food=4,
+        human_gain_from_food=30,
     ):
         """
         Create a new Wolf-Sheep model with the given parameters.
@@ -76,19 +90,24 @@ class WolfSheep(Model):
         self.height = height
         self.initial_sheep = initial_sheep
         self.initial_wolves = initial_wolves
+        self.initial_humans = initial_humans
         self.sheep_reproduce = sheep_reproduce
         self.wolf_reproduce = wolf_reproduce
+        self.human_reproduce = human_reproduce
         self.wolf_gain_from_food = wolf_gain_from_food
         self.grass = grass
         self.grass_regrowth_time = grass_regrowth_time
         self.sheep_gain_from_food = sheep_gain_from_food
+        self.human_gain_from_food = human_gain_from_food
 
         self.schedule = RandomActivationByType(self)
         self.grid = MultiGrid(self.width, self.height, torus=True)
+
         self.datacollector = DataCollector(
             {
                 "Wolves": lambda m: m.schedule.get_type_count(Wolf),
                 "Sheep": lambda m: m.schedule.get_type_count(Sheep),
+                "Human": lambda m: m.schedule.get_type_count(Human),
             }
         )
 
@@ -110,6 +129,15 @@ class WolfSheep(Model):
             self.grid.place_agent(wolf, (x, y))
             self.schedule.add(wolf)
 
+        # Create humans
+        for i in range(self.initial_humans):
+            x = self.random.randrange(self.width)
+            y = self.random.randrange(self.height)
+            energy = self.random.randrange(2 * self.human_gain_from_food)
+            human = Human(self.next_id(), (x, y), self, True, energy)
+            self.grid.place_agent(human, (x, y))
+            self.schedule.add(human)
+
         # Create grass patches
         if self.grass:
             for agent, x, y in self.grid.coord_iter():
@@ -128,6 +156,7 @@ class WolfSheep(Model):
         self.running = True
         self.datacollector.collect(self)
 
+
     def step(self):
         self.schedule.step()
         # collect data
@@ -138,14 +167,22 @@ class WolfSheep(Model):
                     self.schedule.time,
                     self.schedule.get_type_count(Wolf),
                     self.schedule.get_type_count(Sheep),
+                    self.schedule.get_type_count(Human),
                 ]
             )
+    
+        if (self.schedule.get_type_count(Human) == 0) and (self.schedule.get_type_count(Wolf) == 0) and (self.schedule.get_type_count(Sheep) == 0):
+            l_agent = self.datacollector.get_agent_vars_dataframe()
+            l_model = self.datacollector.get_model_vars_dataframe()
+            l_agent.to_csv('agent.csv')
+            l_model.to_csv('model.csv')
 
     def run_model(self, step_count=200):
-
+        step_count=200
         if self.verbose:
             print("Initial number wolves: ", self.schedule.get_type_count(Wolf))
             print("Initial number sheep: ", self.schedule.get_type_count(Sheep))
+            print("Initial number human: ", self.schedule.get_type_count(Human))
 
         for i in range(step_count):
             self.step()
@@ -154,3 +191,7 @@ class WolfSheep(Model):
             print("")
             print("Final number wolves: ", self.schedule.get_type_count(Wolf))
             print("Final number sheep: ", self.schedule.get_type_count(Sheep))
+            print("Final number human: ", self.schedule.get_type_count(Human))
+
+        
+

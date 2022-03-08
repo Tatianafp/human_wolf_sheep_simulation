@@ -2,7 +2,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 
-from wolf_sheep.agents import Wolf, Sheep, GrassPatch
+from wolf_sheep.agents import Wolf, Sheep, GrassPatch, Human
 from wolf_sheep.model import WolfSheep
 
 
@@ -20,7 +20,7 @@ def wolf_sheep_portrayal(agent):
 
     elif type(agent) is Wolf:
         portrayal["Shape"] = "wolf_sheep/resources/wolf.png"
-        # https://icons8.com/web-app/36821/German-Shepherd
+        # https://icons8.com/icons/set/wolf
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 2
         portrayal["text"] = round(agent.energy, 1)
@@ -37,12 +37,18 @@ def wolf_sheep_portrayal(agent):
         portrayal["w"] = 1
         portrayal["h"] = 1
 
+    elif type(agent) is Human:
+        portrayal["Shape"] = "wolf_sheep/resources/human.png"
+        # https://icons8.com/icons/set/human
+        portrayal["scale"] = 0.9
+        portrayal["Layer"] = 3
+
     return portrayal
 
 
 canvas_element = CanvasGrid(wolf_sheep_portrayal, 20, 20, 500, 500)
 chart_element = ChartModule(
-    [{"Label": "Wolves", "Color": "#AA0000"}, {"Label": "Sheep", "Color": "#666666"}]
+    [{"Label": "Wolves", "Color": "#AA0000"}, {"Label": "Sheep", "Color": "#666666"},{"Label": "Human", "Color": "#009DFF"}]
 )
 
 model_params = {
@@ -60,12 +66,14 @@ model_params = {
         "slider", "Initial Wolf Population", 50, 10, 300
     ),
     "wolf_reproduce": UserSettableParameter(
-        "slider",
-        "Wolf Reproduction Rate",
-        0.05,
-        0.01,
-        1.0,
-        0.01,
+        "slider","Wolf Reproduction Rate", 0.05, 0.01, 1.0, 0.01,
+        description="The rate at which wolf agents reproduce.",
+    ),
+    "initial_humans": UserSettableParameter(
+        "slider", "Initial Human Population", 50, 10, 300
+    ),
+    "human_reproduce": UserSettableParameter(
+        "slider","Human Reproduction Rate", 0.03, 0.01, 1.0, 0.01,
         description="The rate at which wolf agents reproduce.",
     ),
     "wolf_gain_from_food": UserSettableParameter(
@@ -73,6 +81,9 @@ model_params = {
     ),
     "sheep_gain_from_food": UserSettableParameter(
         "slider", "Sheep Gain From Food", 4, 1, 10
+    ),
+    "human_gain_from_food": UserSettableParameter(
+        "slider", "Human Gain From Food", 30, 1, 50
     ),
 }
 
