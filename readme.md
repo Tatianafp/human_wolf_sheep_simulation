@@ -1,14 +1,12 @@
-# Simulação com o exemplo Human Wolf Sheep
+# Human Wolf Sheep
 
 ## Apresentação do novo modelo
 
-O modelo Human Wolf Sheep foi desenvolvido com base no exemplo "Wolf Sheep" fornecido no repositório do [framework MESA](https://github.com/projectmesa/mesa-examples). O modelo original
-tem por objetivo simular o ecossistema existente entre lobos e ovelhas. Por sua vez, o novo modelo "Human Wolf Sheep" visa simular as consequência da inserção de humanos nesse ecossistema.
+O modelo Human Wolf Sheep foi desenvolvido com base no exemplo "Wolf Sheep" fornecido no repositório do [framework MESA](https://github.com/projectmesa/mesa-examples). O modelo original tem por objetivo simular o ecossistema existente entre lobos e ovelhas. Por sua vez, o novo modelo "Human Wolf Sheep" visa simular as consequência da inserção de humanos nesse ecossistema.
 
-## Hipótese
+## Descrião da hipótese
 
-Ao rodar o modelo "Wolf Sheep" algumas vezes, notou-se que caso se tenha as ovelhas sejam extintas antes dos lobos, estes não sobrevivem por muito tempo, pois não se alimentam de grama. 
-Caso contrário, as ovelhas sobrevivem bem melhor, pois mantiveram sua fonte de energia e não possuem a ameaça de serem comidas por lobos. Tendo isso em vista, 
+Ao rodar o modelo "Wolf Sheep" algumas vezes, notou-se que caso se tenha as ovelhas sejam extintas antes dos lobos, estes não sobrevivem por muito tempo, pois não se alimentam de grama. Caso contrário, as ovelhas sobrevivem bem melhor, pois mantiveram sua fonte de energia e não possuem a ameaça de serem comidas por lobos. Tendo isso em vista, 
 foi criado um agente que representa um humano, o qual se alimenta de grama e ovelha, mas que também pode ser comido por lobos, a fim de se analisar a influência que este quarto
 elemento exerce perante este ecossistema.
 
@@ -22,7 +20,22 @@ Os comportamento referentes a reproducibilidade e quantidade de energia adiquiri
 
 ## Como usar o simulador
 
-Para utilizar o simulador e rodar o novo modelo, basta executar o seguinte comando: "mesa runserver"
+### Dependências
+ 
+Para a execução correta do modelo deve-se instalar o pacote **mesa** e os outros listados em **requirements.txt**. Isso pode ser feito ao se executar o seguinte comando:
+
+```
+  $ pip install -r requirements.txt
+
+```
+
+### Execução
+
+Para utilizar o simulador e rodar o novo modelo, basta executar o seguinte comando: 
+
+```
+    $ mesa runserver
+```
 
 ## Varíaveis armazenadas no arquivo CSV
 
